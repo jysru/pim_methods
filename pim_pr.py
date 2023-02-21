@@ -5,7 +5,7 @@ def quality(x, y):
     return np.power(np.abs(np.sum(x * np.conjugate(y))) / np.sum(np.abs(x) * np.abs(y)), 2)
 
 
-def pim_internal_pr(b, xc, A, max_iter=50, max_Qint=0.99):
+def internal_pr(b, xc, A, max_iter=50, max_Qint=0.99):
     x_est = xc
     Ap = np.linalg.pinv(A)
 
@@ -24,7 +24,7 @@ def pim_pr(x, xc, A, max_iter=50, max_Q=0.99):
 
     for _ in range(max_iter):
         b = np.abs(np.dot(A, x))
-        x_est = pim_internal_pr(b, xc, A)
+        x_est = internal_pr(b, xc, A)
         x = np.abs(x) * np.exp(1j * (np.angle(x) - np.angle(x_est) + np.angle(xc)))
         q = quality(x, xc)
         print(f"Quality: {q}")
