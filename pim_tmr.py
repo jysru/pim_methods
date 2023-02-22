@@ -13,45 +13,48 @@ def random_init(n, m):
 def init_wirtinger(A, B):
     pass
 
-def pim_tmr(A, B, max_iter=10000, max_Q=0.99, tol=1e-3):
+def pim_tmr(A, B, max_iter=10000, tol=1e-5, tol_stag=1e-3, max_stag=10):
     n, m = A.shape[1], B.shape[1]
     U, s, Vh = np.linalg.svd(A, full_matrices=False)
     S = np.diag(s)
 
     Xk = random_init(m, n)
-    J = np.ones(shape=(m), dtype=bool)
+    cols = np.ones(shape=(m), dtype=bool)
+    cols_stag = np.ones(shape=(m), dtype=bool)
+    i_stags = np.zeros(shape=(m), dtype=int)
     
-
-    normres = 0
-    nm = 0
-    nmMax = 10
+    normres = np.zeros(shape=(m), dtype=float)
     restart = 0
     for iter in range(max_iter):
-        # Xk(:,J) = V*(S\(U'*(pam.B(:,J).*exp(1i*angle(pam.A*Xk(:,J))))));
-        tmp = B[:, J] * np.exp(1j * np.angle(np.dot(A, Xk[:, J])))
+        tmp = B[:, cols] * np.exp(1j * np.angle(np.dot(A, Xk[:, cols])))
         tmp = np.dot(U.conj().T, tmp) 
-        Xk[:, J] = np.dot(Vh.conj().T, np.linalg.solve(S, tmp) )
+        Xk[:, cols] = np.dot(Vh.conj().T, np.linalg.solve(S, tmp) )
 
         Bk = np.abs(np.dot(A, Xk))
-        res = np.abs(Bk - B)
+        Rk = np.abs(Bk/np.linalg.norm(Bk, ord='fro') - B/np.linalg.norm(B, ord='fro'))
+        betak = np.sum(Rk, axis=0)
+
+        cols_ok = (betak < tol)
+        cols = np.logical_not(cols_ok)
+        cols_not_ok = np.sum(cols)
+
         normresanc = normres
-        normres = np.linalg.norm(res, ord=1)
-        I = (np.sum(res, axis=0) < tol)
-        J = np.logical_not(I)
-        j = np.sum(J)
+        normres = betak
 
-        if (np.abs(normres - normresanc)/normres < 0.01*tol):
-            nm += 1
-        print(f"{iter:5.0f}  {normres:10.4e} {j:5.0f}")
+        cols_stag[cols] = (np.abs(normres[cols] - normresanc[cols])/normres[cols] < tol_stag)
+        i_stags[cols_stag] = i_stags[cols_stag] + 1
 
-        if nm >= nmMax:
-            Xnew = random_init(m, n)
-            Xk[:, J] = Xnew[:, J]
+        cols_reset = (i_stags >= max_stag)
+        if np.any(cols_reset):
+            Xnew = random_init(np.sum(cols_reset), n)
+            Xk[:, cols_reset] = Xnew
             print(f"Restart")
-            nm = 0
+            i_stags[cols_reset] = 0
             restart += 1
 
-        if j == 0:
+        print(f"{iter:5.0f}  {np.sum(Rk):10.4e} {cols_not_ok:5.0f}")
+
+        if cols_not_ok == 0:
             break
 
     return Xk
@@ -77,7 +80,8 @@ def compare_matrices(X1, X2):
 if __name__ == "__main__":
     N = 500
     n = 32
-    m = 288*n
+    # m = 288*n
+    m = 8*n
 
     A = np.random.rand(N,n)*np.exp(1j*2*np.pi*np.random.rand(N,n))
     X = np.random.rand(n,m)*np.exp(1j*2*np.pi*np.random.rand(n,m))
