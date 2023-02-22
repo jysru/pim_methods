@@ -5,7 +5,7 @@ def quality(x, y):
     return np.power(np.abs(np.sum(x * np.conjugate(y))) / np.sum(np.abs(x) * np.abs(y)), 2)
 
 def mse(x, y):
-     return np.square(x - y).mean()
+    return np.square(x - y).mean()
 
 def random_init(n, m):
     return np.random.rand(m,n)*np.exp(1j*2*np.pi*np.random.rand(m,n))
@@ -13,13 +13,14 @@ def random_init(n, m):
 def init_wirtinger(A, B):
     pass
 
-def pim_tmr(A, B, max_iter=10000, tol=1e-5, tol_stag=1e-3, max_stag=10):
+def pim_tmr(A, B, max_iter=10000, tol=1e-3, tol_stag=1e-3, max_stag=10):
     n, m = A.shape[1], B.shape[1]
     U, s, Vh = np.linalg.svd(A, full_matrices=False)
     S = np.diag(s)
 
     Xk = random_init(m, n)
     cols = np.ones(shape=(m), dtype=bool)
+    cols_ok = np.zeros(shape=(m), dtype=bool)
     cols_stag = np.ones(shape=(m), dtype=bool)
     i_stags = np.zeros(shape=(m), dtype=int)
     
@@ -32,6 +33,7 @@ def pim_tmr(A, B, max_iter=10000, tol=1e-5, tol_stag=1e-3, max_stag=10):
 
         Bk = np.abs(np.dot(A, Xk))
         Rk = np.abs(Bk/np.linalg.norm(Bk, ord='fro') - B/np.linalg.norm(B, ord='fro'))
+        MSE = mse(Bk, B)
         betak = np.sum(Rk, axis=0)
 
         cols_ok = (betak < tol)
@@ -48,11 +50,11 @@ def pim_tmr(A, B, max_iter=10000, tol=1e-5, tol_stag=1e-3, max_stag=10):
         if np.any(cols_reset):
             Xnew = random_init(np.sum(cols_reset), n)
             Xk[:, cols_reset] = Xnew
-            print(f"Restart")
+            print(f"Restarting {np.sum(cols_reset)} columns ")
             i_stags[cols_reset] = 0
             restart += 1
 
-        print(f"{iter:5.0f}  {np.sum(Rk):10.4e} {cols_not_ok:5.0f}")
+        print(f"{iter:5.0f} {MSE:10.4e} {np.sum(Rk):10.4e} {cols_not_ok:5.0f}")
 
         if cols_not_ok == 0:
             break
@@ -78,7 +80,7 @@ def compare_matrices(X1, X2):
 
 
 if __name__ == "__main__":
-    N = 500
+    N = 200
     n = 32
     # m = 288*n
     m = 8*n
