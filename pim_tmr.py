@@ -85,7 +85,7 @@ def pim_tmr(A, B, max_iter=10000, tol=1e-3, tol_stag=1e-3, max_stag=10):
 
         Bk = np.abs(np.dot(A, Xk))
         betak = mse_cols(Bk/np.linalg.norm(Bk, ord='fro'), Bnorm)
-        MSE = mse(Bk, B)
+        MSE = mse(Bk/np.linalg.norm(Bk, ord='fro'), Bnorm)
 
         convergence_check = (betak < tol)
         converged_cols[active_cols] = convergence_check[active_cols] 
