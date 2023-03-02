@@ -16,53 +16,6 @@ def random_init(n, m):
 def init_wirtinger(A, B):
     pass
 
-# def pim_tmr(A, B, max_iter=10000, tol=1e-3, tol_stag=1e-3, max_stag=10):
-#     n, m = A.shape[1], B.shape[1]
-#     U, s, Vh = np.linalg.svd(A, full_matrices=False)
-#     S = np.diag(s)
-
-#     Xk = random_init(m, n)
-#     cols = np.ones(shape=(m), dtype=bool)
-#     cols_ok = np.zeros(shape=(m), dtype=bool)
-#     cols_stag = np.ones(shape=(m), dtype=bool)
-#     i_stags = np.zeros(shape=(m), dtype=int)
-    
-#     normres = np.zeros(shape=(m), dtype=float)
-#     restart = 0
-#     for iter in range(max_iter):
-#         tmp = B[:, cols] * np.exp(1j * np.angle(np.dot(A, Xk[:, cols])))
-#         tmp = np.dot(U.conj().T, tmp) 
-#         Xk[:, cols] = np.dot(Vh.conj().T, np.linalg.solve(S, tmp) )
-
-#         Bk = np.abs(np.dot(A, Xk))
-#         Rk = np.abs(Bk/np.linalg.norm(Bk, ord='fro') - B/np.linalg.norm(B, ord='fro'))
-#         MSE = mse(Bk, B)
-#         betak = np.sum(Rk, axis=0)
-
-#         cols_ok = (betak < tol)
-#         cols = np.logical_not(cols_ok)
-#         cols_not_ok = np.sum(cols)
-
-#         normresanc = normres
-#         normres = betak
-
-#         cols_stag[cols] = (np.abs(normres[cols] - normresanc[cols])/normres[cols] < tol_stag)
-#         i_stags[cols_stag] = i_stags[cols_stag] + 1
-
-#         cols_reset = (i_stags >= max_stag)
-#         if np.any(cols_reset):
-#             Xnew = random_init(np.sum(cols_reset), n)
-#             Xk[:, cols_reset] = Xnew
-#             print(f"Restarting {np.sum(cols_reset)} columns ")
-#             i_stags[cols_reset] = 0
-#             restart += 1
-
-#         print(f"{iter:5.0f} {MSE:10.4e} {np.sum(Rk):10.4e} {cols_not_ok:5.0f}")
-
-#         if cols_not_ok == 0:
-#             break
-
-#     return Xk
 
 def pim_tmr(A, B, max_iter=10000, tol=1e-3, tol_stag=1e-3, max_stag=10):
     n, m = A.shape[1], B.shape[1]
