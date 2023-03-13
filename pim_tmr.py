@@ -5,7 +5,7 @@ def quality(x, y):
     return np.power(np.abs(np.sum(x * np.conjugate(y))) / np.sum(np.abs(x) * np.abs(y)), 2)
 
 def mse(x, y):
-    return np.square(x - y).mean()
+    return np.mean(np.square(x - y))
 
 def mse_cols(x, y):
     return np.mean(np.square(x - y), axis=0)
@@ -13,17 +13,32 @@ def mse_cols(x, y):
 def random_init(n, m):
     return np.random.rand(m,n)*np.exp(1j*2*np.pi*np.random.rand(m,n))
 
-def init_wirtinger(A, B):
-    pass
+def wirtinger_initialization(A, B):
+    n, m, N = A.shape[1], B.shape[1], B.shape[0]
+    X_init = np.zeros(shape=(n,m), dtype=np.complex64)
+    B = np.square(B)
+
+    for k in range(m):
+        lbda = 0
+        for j in range(N):
+            lbda += np.square(np.linalg.norm(A[j,:]))
+        lbda = np.sqrt(n * np.sum(B[:,k]) / lbda)
+        _, v = np.linalg.eig(np.dot(np.transpose(np.conj(A)), np.dot(np.diag(B[:,k]), A)) / N)
+        X_init[:,k] = lbda * v[:,0]
+
+    return X_init
 
 
-def pim_tmr(A, B, max_iter=10000, tol=1e-3, tol_stag=1e-3, max_stag=10):
+def pim_tmr(A, B, max_iter=10000, tol=1e-3, tol_stag=1e-3, max_stag=10, init_wirtinger: bool = False):
     n, m = A.shape[1], B.shape[1]
     U, s, Vh = np.linalg.svd(A, full_matrices=False)
     S = np.diag(s)
     Bnorm = B/np.linalg.norm(B, ord='fro')
 
-    Xk = random_init(m, n)
+    if init_wirtinger:
+        Xk = wirtinger_initialization(A, B)
+    else:
+        Xk = random_init(m, n)
     active_cols = np.ones(shape=(m), dtype=bool)
     converged_cols = np.logical_not(active_cols)
     stag_cols = np.zeros(shape=(m), dtype=bool)
