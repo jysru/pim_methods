@@ -66,6 +66,11 @@ def sparse_random_complex_toeplitz(n, m, sparsity):
     return sparsify(x, sparsity)
 
 
+def sparse_random_complex_full_toeplitz(n, m, sparsity):
+    x = random_complex_full_toeplitz(n, m)
+    return sparsify(x, sparsity)
+
+
 def normalize(X):
     return np.abs(X) * np.exp(1j * (np.angle(X) - np.angle(X[0,:])))
 
