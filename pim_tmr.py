@@ -29,7 +29,7 @@ def wirtinger_initialization(A, B):
     return X_init
 
 
-def pim_tmr(A, B, max_iter: int = 10000, tol: float = 1e-3, tol_stag: float = 1e-3, max_stag: int = 10, init_wirtinger: bool = False):
+def pim_tmr(A, B, max_iter: int = 10000, tol: float = 1e-3, tol_stag: float = 1e-3, max_stag: int = 10, init_wirtinger: bool = False, disable_outputs: bool = False):
     n, m = A.shape[1], B.shape[1]
     U, s, Vh = np.linalg.svd(A, full_matrices=False)
     S = np.diag(s)
@@ -69,11 +69,13 @@ def pim_tmr(A, B, max_iter: int = 10000, tol: float = 1e-3, tol_stag: float = 1e
         if np.any(cols_reset):
             Xnew = random_init(np.sum(cols_reset), n)
             Xk[:, cols_reset] = Xnew
-            print(f"Restarting {np.sum(cols_reset)} columns ")
+            if not disable_outputs:
+                print(f"Restarting {np.sum(cols_reset)} columns ")
             i_stags[cols_reset] = 0
             restart += 1
 
-        print(f"i={iter:5.0f}  mse_glob={MSE:1.3e}  mse_convs={np.mean(betak[converged_cols]):1.3e}  mse_acts={np.mean(betak[active_cols]):1.3e}  act={np.sum(active_cols):5.0f}  convs={np.sum(converged_cols):5.0f}")
+        if not disable_outputs:
+            print(f"i={iter:5.0f}  mse_glob={MSE:1.3e}  mse_convs={np.mean(betak[converged_cols]):1.3e}  mse_acts={np.mean(betak[active_cols]):1.3e}  act={np.sum(active_cols):5.0f}  convs={np.sum(converged_cols):5.0f}")
 
         if np.sum(active_cols) == 0:
             break
