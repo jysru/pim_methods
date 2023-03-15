@@ -20,8 +20,7 @@ def pearson(x, y):
 
 
 def quality_statistics(X, X_est, N: int = 100, print_result: bool = True):
-    n, m = X.shape[0], X.shape[1]
-    A = pim_mats.complex_random(N, X.shape[0])
+    A = pim_mats.random(N, X.shape[0], complex=True)
     Y, Y_est = np.dot(A, X), np.dot(A, X_est)
 
     q = np.zeros(N)
@@ -33,14 +32,13 @@ def quality_statistics(X, X_est, N: int = 100, print_result: bool = True):
     return np.mean(q), np.std(q)
 
     
-def pearson_statistics(X, X_est, N: int = 100, print_result: bool = True):
-    n, m = X.shape[0], X.shape[1]
-    A = pim_mats.complex_random(N, X.shape[0])
-    Y, Y_est = np.dot(A, X), np.dot(A, X_est)
+def pearson_statistics(X, X_est, N: int = 100, print_result: bool = True, sparsity: float = 0):
+    A = pim_mats.random(N, X.shape[0], complex=True, sparsity=sparsity)
+    B, B_est = np.abs(np.dot(A, X)), np.abs(np.dot(A, X_est))
 
     q = np.zeros(N)
     for i in range(N):
-        q[i] = pearson(Y[i,:], Y_est[i,:])
+        q[i] = pearson(np.square(B[i,:]), np.square(B_est[i,:]))
 
     if print_result:
         print(f"Pearson: average = {np.mean(q)*100:.5f}%, std = {np.std(q)*100:.5f}%")
