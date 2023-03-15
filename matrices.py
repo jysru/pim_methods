@@ -2,20 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import linalg
 
-def random(n, m):
-    return np.random.rand(n, m)
+
+def random(n, m, complex: bool = False, sparsity: float = 0):
+    X = np.random.rand(n, m)
+    if complex:
+        X = complexify(X)
+    if sparsity:
+        X = sparsify(X, sparsity)
+    return X
 
 
-def complex_random(n, m):
-    return np.random.rand(n,m) * np.exp(1j * 2 * np.pi * np.random.rand(n,m))
-
-
-def diag_random(n):
-    return np.diag(np.random.rand(n))
-
-
-def diag_complex_random(n):
-    return np.diag(np.random.rand(n))*np.exp(1j * 2 * np.pi * np.random.rand(n))
+def complexify(x):
+    return x * np.exp(1j * 2 * np.pi * np.random.rand(*x.shape))
 
 
 def sparsify(x, sparsity):
@@ -27,48 +25,24 @@ def sparsify(x, sparsity):
     return np.reshape(x, shape)
 
 
-def sparse_random(n, m, sparsity):
-    x = random(n, m)
-    return sparsify(x, sparsity)
+def random_toeplitz(n, m, complex: bool = False, sparsity: float = 0, toeplitz_phase: bool = False):
+    r, l = random(n, 1), random(m, 1)
+    X = linalg.toeplitz(r, l)
+    if complex:
+        if toeplitz_phase:
+            X = X * np.exp(1j * 2 * np.pi * linalg.toeplitz(random(n, 1), random(m, 1)))
+        else:
+            X = complexify(X)
+    if sparsity:
+        X = sparsify(X, sparsity)
+    return X
 
 
-def sparse_complex_random(n, m, sparsity):
-    x = complex_random(n, m)
-    return sparsify(x, sparsity)
-
-
-def random_toeplitz(n, m):
-    r = random(n, 1)
-    l = random(m, 1)
-    x = linalg.toeplitz(r, l)
-    return x
-
-
-def random_complex_toeplitz(n, m):
-    x = random_toeplitz(n, m)
-    phi = np.angle(complex_random(n, m))
-    return x * np.exp(1j * phi)
-
-
-def random_complex_full_toeplitz(n, m):
-    x = random_toeplitz(n, m)
-    phi = 2 * np.pi * random_toeplitz(n, m)
-    return x * np.exp(1j * phi)
-
-
-def sparse_random_toeplitz(n, m, sparsity):
-    x = random_toeplitz(n, m)
-    return sparsify(x, sparsity)
-
-
-def sparse_random_complex_toeplitz(n, m, sparsity):
-    x = random_complex_toeplitz(n, m)
-    return sparsify(x, sparsity)
-
-
-def sparse_random_complex_full_toeplitz(n, m, sparsity):
-    x = random_complex_full_toeplitz(n, m)
-    return sparsify(x, sparsity)
+def diag_random(n, complex: bool = False):
+    X = np.diag(np.random.rand(n))
+    if complex:
+        X = complexify(X)
+    return X
 
 
 def normalize(X):
