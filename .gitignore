@@ -1,2 +1,2 @@
 *.pyc
-*pim_methods.egg_info/*
+pim_methods.egg-info*
