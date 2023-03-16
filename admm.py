@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+# Adjusted from https://gitlab.xlim.fr/shpakovych/phrt-opt
+
 
 def admm_tmr(
     A,
