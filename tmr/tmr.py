@@ -108,11 +108,11 @@ class TMR():
 
     @property
     def X_norm(self):
-        return self.normalize_matrix(self.X)
+        return TMR.normalize_matrix(self.X)
     
     @property
     def X_best_norm(self):
-        return self.normalize_matrix(self.X_best)
+        return TMR.normalize_matrix(self.X_best)
 
     @staticmethod
     def normalize_matrix(X):
