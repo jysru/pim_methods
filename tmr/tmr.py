@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+import sklearn.linear_model as lin
 
 # Adjusted from https://gitlab.xlim.fr/shpakovych/phrt-opt
 
@@ -106,6 +107,33 @@ class TMR():
             self.mse.append(intens_mse.cpu().detach().numpy())
         self.X = x.cpu().detach().numpy()
 
+    @staticmethod
+    def compute_bias(A, B, X, type: str = 'global', tol: float = 1e-3, max_iter: int = 10, verbose: bool = True):
+        """Find bias according to algorithm 18 from https://www.theses.fr/2022LIMO0120
+            (section A)
+
+            Arguments:
+                A: signals matrix (dims: N x n)
+                B: measurements matrix (dims: N x m)
+                X: transfer matrix (dims: m x n)
+        """
+
+        beta = 0
+        Bunb = B
+        Bmod = np.abs(np.dot(A, X))
+        for _ in range(max_iter):
+            if type.lower() == 'global':
+                reg = lin.LinearRegression(copy_X=True).fit(Bmod.reshape(-1, 1), Bunb.reshape(-1, 1))
+                beta += reg.intercept_[0]
+            else:
+                reg = lin.LinearRegression(copy_X=True).fit(Bmod, Bunb)
+                beta += reg.intercept_
+            Bunb = B - beta
+            if np.all(np.abs(beta)) < tol:
+                print(f"All regressions intercepts < {tol:.3e}, stopping")
+                break
+        return beta
+
     @property
     def X_norm(self):
         return TMR.normalize_matrix(self.X)
@@ -118,7 +146,7 @@ class TMR():
     def normalize_matrix(X):
         return np.abs(X) / np.max(np.abs(X)) * np.exp(1j * (np.angle(X) - np.angle(X[0, :])))
 
-    def show_results(self):
+    def show_results(self, yscale: str = 'linear'):
         x = np.array(self.iter)+1
         y1 = np.array(self.metric)
         y2 = np.array(self.mse)
@@ -128,10 +156,12 @@ class TMR():
         ax.set_xlabel('Iteration #')
         ax.set_ylabel('Distance [a.u.]', color='blue')
         ax.set_title('ADMM convergence')
+        ax.set_yscale(yscale)
         
         ax2 = ax.twinx()
         ln2 = ax2.plot(x, y2, color='red', label='Intensity MSE')
         ax2.set_ylabel('MSE',color='red')
+        ax2.set_yscale(yscale)
 
         leg = ln1 + ln2
         labs = [l.get_label() for l in leg]
