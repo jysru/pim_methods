@@ -79,7 +79,7 @@ class TMR():
                 optimizer.step()
             # lmd_{k+1} = (1 / (1 + rho)) * F(x)
             with torch.no_grad():
-                lmd = (1. / (1 + _rho)) * (lmd * int(is_lmd_cumulative) + torch.matmul(A, x) - B)
+                lmd = (1. / (1 + _rho)) * (lmd * int(is_lmd_cumulative) + torch.abs(torch.matmul(A, x)) - B)
 
             # Stopping test
             dist = torch.norm(torch.abs(torch.matmul(A, x)) - B) / B_norm
@@ -141,6 +141,22 @@ class TMR():
     @property
     def X_best_norm(self):
         return TMR.normalize_matrix(self.X_best)
+    
+    @property
+    def best_mse(self):
+        return np.min(self.mse) if self.mse else None
+    
+    @property
+    def end_mse(self):
+        return self.mse[-1] if self.mse else None
+    
+    @property
+    def best_metric(self):
+        return np.min(self.metric) if self.metric else None
+    
+    @property
+    def end_metric(self):
+        return self.metric[-1] if self.metric else None
 
     @staticmethod
     def normalize_matrix(X):
@@ -166,3 +182,31 @@ class TMR():
         leg = ln1 + ln2
         labs = [l.get_label() for l in leg]
         ax.legend(leg, labs)
+
+
+    def show_results(self, yscale: str = 'linear'):
+        x = np.array(self.iter)+1
+        y1 = np.array(self.metric)
+        y2 = np.array(self.mse)
+
+        fig, ax = plt.subplots()
+        ln1 = ax.plot(x, y1, color='blue', label='Metric')
+        ax.set_xlabel('Iteration #')
+        ax.set_ylabel('Distance [a.u.]', color='blue')
+        ax.set_title('ADMM convergence')
+        ax.set_yscale(yscale)
+        
+        ax2 = ax.twinx()
+        ln2 = ax2.plot(x, y2, color='red', label='Intensity MSE')
+        ax2.set_ylabel('MSE',color='red')
+        ax2.set_yscale(yscale)
+
+        leg = ln1 + ln2
+        labs = [l.get_label() for l in leg]
+        ax.legend(leg, labs)
+
+    def print_results(self):
+        print(f"End MSE: {self.end_mse}")
+        print(f"Best MSE: {self.best_mse}")
+        print(f"End metric: {self.end_metric}")
+        print(f"Best metric: {self.best_metric}")
