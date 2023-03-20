@@ -15,7 +15,6 @@ class TMR():
         self.dtype = dtype
         self.X = None
         self.X_best = None
-        self.X_norm = None
         self.verbose = verbose
         self.device = device
         self.save_best = save_best
@@ -82,7 +81,6 @@ class TMR():
                 lmd = (1. / (1 + _rho)) * (lmd * int(is_lmd_cumulative) + torch.matmul(A, x) - B)
 
             # Stopping test
-            
             dist = torch.norm(torch.abs(torch.matmul(A, x)) - B) / B_norm
             if prev_dist is None:
                 prev_dist = dist
@@ -107,10 +105,18 @@ class TMR():
             self.metric.append(dist.cpu().detach().numpy())
             self.mse.append(intens_mse.cpu().detach().numpy())
         self.X = x.cpu().detach().numpy()
-        self.normalize_matrix()
 
-    def normalize_matrix(self):
-        self.X_norm = np.abs(self.X) / np.max(np.abs(self.X)) * np.exp(1j * (np.angle(self.X) - np.angle(self.X[0, :])))
+    @property
+    def X_norm(self):
+        return self.normalize_matrix(self.X)
+    
+    @property
+    def X_best_norm(self):
+        return self.normalize_matrix(self.X_best)
+
+    @staticmethod
+    def normalize_matrix(X):
+        return np.abs(X) / np.max(np.abs(X)) * np.exp(1j * (np.angle(X) - np.angle(X[0, :])))
 
     def show_results(self):
         x = np.array(self.iter)+1
