@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def get_subsets(A, B, N: int, randomize: bool = False):
@@ -21,3 +22,4 @@ def select_pixels(img, idxs):
 
 def crop_img(img, crop: int = 3):
     return img[crop:-crop, crop:-crop]
+
