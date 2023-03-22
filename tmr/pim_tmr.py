@@ -1,32 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-def quality(x, y):
-    return np.power(np.abs(np.sum(x * np.conjugate(y))) / np.sum(np.abs(x) * np.abs(y)), 2)
-
-def mse(x, y):
-    return np.mean(np.square(x - y))
-
-def mse_cols(x, y):
-    return np.mean(np.square(x - y), axis=0)
-
-def random_init(n, m):
-    return np.random.rand(m,n) * np.exp(1j * 2 * np.pi * np.random.rand(m,n))
-
-def wirtinger_initialization(A, B):
-    n, m, N = A.shape[1], B.shape[1], B.shape[0]
-    X_init = np.zeros(shape=(n, m), dtype=np.complex64)
-    B = np.square(B)
-
-    for k in range(m):
-        lbda = 0
-        for j in range(N):
-            lbda += np.square(np.linalg.norm(A[j, :]))
-        lbda = np.sqrt(n * np.sum(B[:, k]) / lbda)
-        _, v = np.linalg.eig(np.dot(np.transpose(np.conj(A)), np.dot(np.diag(B[:, k]), A)) / N)
-        X_init[:, k] = lbda * v[:, 0]
-
-    return X_init
+from utils.utils import compare_matrices
+from inits import random_init, wirtinger_initialization
+from utils.metrics import quality, mse, mse_cols
 
 
 def pim_tmr(A, B, max_iter: int = 10000, tol: float = 1e-3, tol_stag: float = 1e-3, max_stag: int = 10, init_matrix = None, init_wirtinger: bool = False, disable_outputs: bool = False, col_per_col: bool = True):
@@ -96,28 +72,7 @@ def pim_tmr(A, B, max_iter: int = 10000, tol: float = 1e-3, tol_stag: float = 1e
     return Xk
 
 
-def compare_matrices(X1, X2):
-    fig, axs = plt.subplots(1, 4)
-    pl0 = axs[0].imshow(np.abs(X1.T))
-    pl1 = axs[1].imshow(np.abs(X2.T))
-    pl2 = axs[2].imshow(np.angle(X1.T), cmap="twilight")
-    pl3 = axs[3].imshow(np.angle(X2.T), cmap="twilight")
-    plt.colorbar(pl0, ax=axs[0])
-    plt.colorbar(pl1, ax=axs[1])
-    plt.colorbar(pl2, ax=axs[2])
-    plt.colorbar(pl3, ax=axs[3])
 
-    fig, axs = plt.subplots(1, 2)
-    pl0 = axs[0].imshow(np.abs(X1.T) - np.abs(X2.T))
-    diff_angle = np.angle(np.exp(1j * (np.angle(X1.T) - np.angle(X2.T))))
-    diff_means = np.mean(diff_angle, axis=1).reshape((diff_angle.shape[0], 1))
-    diff_angle = np.angle(np.exp(1j * (diff_angle - diff_means)))
-    pl1 = axs[1].imshow(diff_angle, cmap="twilight")
-
-    plt.colorbar(pl0, ax=axs[0])
-    plt.colorbar(pl1, ax=axs[1])
-
-    plt.show()
 
 
 if __name__ == "__main__":
