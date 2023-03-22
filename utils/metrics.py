@@ -1,5 +1,5 @@
 import numpy as np
-import matrices as pim_mats
+import utils.matrices as pim_mats
 
 
 def quality(x, y):
