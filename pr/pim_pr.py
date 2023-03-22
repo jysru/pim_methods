@@ -56,16 +56,15 @@ def pim_pr_svd(x, xc, A, max_iter=50, max_Q=0.99):
     return x
 
 
-def pim_retrieval(b, A, max_iter=50, max_Q=0.99):
-    Ap = np.linalg.pinv(A)
-    x = np.exp(1j * 2 * np.pi * np.random.rand(A.shape[1]))
-    x_est = x
-
+def pim_retrieval_svd(x, xc, A, max_iter=50, max_Q=0.9999):
+    x_ret = xc.copy()
     for _ in range(max_iter):
-        x_old = x
-        y = b * np.exp(1j * np.angle(np.dot(A, x_est)))
-        x = np.dot(Ap, y)
-        x_est = np.abs(x) * np.exp(1j * (np.angle(x_est) - np.angle(x)))
-        if quality(x, x_old >= max_Q):
+        b = np.abs(np.dot(A, x))
+        x_est = internal_pr_svd(b, xc, A)
+        x = np.abs(x) * np.exp(1j * (np.angle(x) - np.angle(x_est) + np.angle(xc)))
+        x_ret = np.abs(x_ret) * np.exp(1j * (np.angle(x_ret) + np.angle(x_est)))
+        q = quality(x, xc)
+        print(f"Quality: {q}")
+        if q > max_Q:
             break
-    return x
+    return x_ret
