@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from metrics import quality
+from utils.metrics import quality
 
 
 def spgd(x, dither: float = 0.2, max_iter: int = 100, gain: float = 4) -> np.array:
