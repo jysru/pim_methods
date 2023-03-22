@@ -5,6 +5,13 @@ import matrices as pim_mats
 def quality(x, y):
     return np.power(np.abs(np.sum(x * np.conjugate(y))) / np.sum(np.abs(x) * np.abs(y)), 2)
 
+def mse(x, y):
+    return np.mean(np.square(x - y))
+
+def mse_cols(x, y):
+    return np.mean(np.square(x - y), axis=0)
+
+
 def pearson(x, y):
         x = np.abs(x)
         y = np.abs(y)
